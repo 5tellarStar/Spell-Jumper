@@ -12,9 +12,12 @@ public class playerController : MonoBehaviour
     public float accelSpeed;
     public float jumpForce;
 
+    private float jumpTime = 0;
+
     private InputAction horizontalMoveAction;
     private InputAction jumpAction;
     private InputAction fireAction;
+
 
     [SerializeField] private Transform aim; 
     [SerializeField] private Transform BookSprite;
@@ -63,17 +66,19 @@ public class playerController : MonoBehaviour
         bool jumped = jumpAction.WasPressedThisFrame();
         bool jumping = jumpAction.IsPressed();
 
+        jumpTime += Time.deltaTime;
 
         if (jumped && grounded)
         {
             rb.AddForceY(jumpForce);
+            jumpTime = 0;
         }
 
         if (rb.linearVelocity.y < 0 || !jumping)
         {
             rb.gravityScale = 2f;
         }
-        else if(jumping && rb.linearVelocity.y > 0)
+        else if(jumping && rb.linearVelocity.y > 0 && jumpTime < 0.78f) 
         {
             rb.gravityScale = 0.5f;
         }
