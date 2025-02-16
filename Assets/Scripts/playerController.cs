@@ -12,15 +12,22 @@ public class playerController : MonoBehaviour
     public float accelSpeed;
     public float jumpForce;
 
+    public float projectileSpeed;
+    public float fireRate;
+
+    private float fireTime = 0;
+
     private float jumpTime = 0;
 
     private InputAction horizontalMoveAction;
     private InputAction jumpAction;
     private InputAction fireAction;
 
+    [SerializeField] private GameObject projectile;
 
     [SerializeField] private Transform aim; 
     [SerializeField] private Transform BookSprite;
+    [SerializeField] private Transform spawnPoint;
 
     [SerializeField] private Camera camera;
     // Start is called before the first frame update
@@ -98,11 +105,27 @@ public class playerController : MonoBehaviour
             BookSprite.rotation = Quaternion.Euler(0, 0, MathF.Atan((aim.position.y - transform.position.y)/ (aim.position.x - transform.position.x)) * Mathf.Rad2Deg);
         }
 
-        bool fired = fireAction.WasPressedThisFrame();
-
-        if (fired)
+        if(grounded)
         {
-            rb.AddForce((aim.position - transform.position).normalized * -300);
+            rb.linearDamping = 1;
+        }
+        else
+        {
+            rb.linearDamping = 0;
+        }
+
+
+        bool firing = fireAction.IsPressed();
+
+        fireTime += Time.deltaTime;
+
+        if (firing && fireTime > fireRate)
+        {
+            fireTime = 0;
+            GameObject shot = Instantiate(projectile);
+            shot.transform.rotation = BookSprite.rotation;
+            shot.GetComponent<projectile>().speed = projectileSpeed;
+            shot.transform.position = spawnPoint.position;
         }
         
     }
