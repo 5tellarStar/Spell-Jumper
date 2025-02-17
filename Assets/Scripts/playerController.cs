@@ -22,6 +22,8 @@ public class playerController : MonoBehaviour
     private InputAction horizontalMoveAction;
     private InputAction jumpAction;
     private InputAction fireAction;
+    private InputAction downAction;
+    private InputAction castingAction;
 
     [SerializeField] private GameObject projectile;
 
@@ -30,6 +32,9 @@ public class playerController : MonoBehaviour
     [SerializeField] private Transform spawnPoint;
 
     [SerializeField] private Camera camera;
+
+
+    List<dir> chant = new List<dir>();
     // Start is called before the first frame update
     void Start()
     {
@@ -37,14 +42,70 @@ public class playerController : MonoBehaviour
         horizontalMoveAction = InputSystem.actions.FindAction("Move");
         jumpAction = InputSystem.actions.FindAction("Jump");
         fireAction = InputSystem.actions.FindAction("Fire");
+        downAction = InputSystem.actions.FindAction("Down");
+        castingAction = InputSystem.actions.FindAction("Casting");
     }
 
     // Update is called once per frame
     void Update()
     {
+        aim.position = Input.mousePosition * ((camera.orthographicSize * 2)/Screen.height) - new Vector3(camera.orthographicSize * camera.aspect,camera.orthographicSize);
+
         bool grounded = Physics2D.BoxCast(transform.position,new Vector2(1,1),0,Vector2.down,0.4f, 64).collider != null;
 
         float horizontalMoveValue = horizontalMoveAction.ReadValue<float>();
+
+        bool casting = castingAction.IsPressed();
+
+        bool up = jumpAction.WasPressedThisFrame();
+        bool down = downAction.WasPressedThisFrame();
+        bool left = horizontalMoveAction.WasPressedThisFrame() && horizontalMoveValue < 0;
+        bool right = horizontalMoveAction.WasPressedThisFrame() && horizontalMoveValue > 0;
+
+        bool firing = fireAction.IsPressed();
+        bool jumped = jumpAction.WasPressedThisFrame();
+        bool jumping = jumpAction.IsPressed();
+
+        if(castingAction.WasPressedThisFrame())
+        {
+            chant = new();
+            Time.timeScale = 0.25f;
+        }
+
+        if(castingAction.WasReleasedThisFrame())
+        {
+            foreach (var word in chant)
+            {
+                Debug.Log(word);
+            }
+            Time.timeScale = 1;
+        }
+
+        if (casting)
+        {
+            if (up)
+            {
+                chant.Add(dir.Up);
+            }
+            else if(down)
+            {
+                chant.Add(dir.Down);
+            }
+            else if(left)
+            {
+                chant.Add(dir.Left);
+            }
+            else if(right)
+            {
+                chant.Add(dir.Right);
+            }
+            horizontalMoveValue = 0;
+            firing = false;
+            jumped = false;
+            jumping = false;
+        }
+
+
 
         if (horizontalMoveValue < 0 && grounded)
         {
@@ -70,8 +131,6 @@ public class playerController : MonoBehaviour
         }
 
 
-        bool jumped = jumpAction.WasPressedThisFrame();
-        bool jumping = jumpAction.IsPressed();
 
         jumpTime += Time.deltaTime;
 
@@ -94,7 +153,6 @@ public class playerController : MonoBehaviour
             rb.gravityScale = 1;
         }
 
-        aim.position = Input.mousePosition * ((camera.orthographicSize * 2)/Screen.height) - new Vector3(camera.orthographicSize * camera.aspect,camera.orthographicSize);
 
         if (aim.position.x < transform.position.x)
         {
@@ -115,11 +173,10 @@ public class playerController : MonoBehaviour
         }
 
 
-        bool firing = fireAction.IsPressed();
 
         fireTime += Time.deltaTime;
 
-        if (firing && fireTime > fireRate)
+        if (firing && fireTime > fireRate && !casting)
         {
             fireTime = 0;
             GameObject shot = Instantiate(projectile);
@@ -129,4 +186,11 @@ public class playerController : MonoBehaviour
         }
         
     }
+}
+public enum dir
+{
+    Up,
+    Down,
+    Left,
+    Right
 }
