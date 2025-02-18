@@ -1,7 +1,9 @@
+using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -14,6 +16,10 @@ public class playerController : MonoBehaviour
 
     public float projectileSpeed;
     public float fireRate;
+
+    public float maxMana = 100;
+    public float mana = 100;
+    public float manaRecharge = 5;
 
     private float fireTime = 0;
 
@@ -35,6 +41,9 @@ public class playerController : MonoBehaviour
 
 
     List<dir> chant = new List<dir>();
+
+    List<dir> blastChant = new List<dir>{dir.Right,dir.Up};
+    public float blastMana = 40;
     // Start is called before the first frame update
     void Start()
     {
@@ -49,6 +58,7 @@ public class playerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Debug.Log(mana);
         aim.position = Input.mousePosition * ((camera.orthographicSize * 2)/Screen.height) - new Vector3(camera.orthographicSize * camera.aspect,camera.orthographicSize);
 
         bool grounded = Physics2D.BoxCast(transform.position,new Vector2(1,1),0,Vector2.down,0.4f, 64).collider != null;
@@ -66,6 +76,13 @@ public class playerController : MonoBehaviour
         bool jumped = jumpAction.WasPressedThisFrame();
         bool jumping = jumpAction.IsPressed();
 
+
+        if(grounded)
+        {
+            mana = Math.Clamp(mana + manaRecharge * Time.deltaTime, 0, maxMana);
+        }
+
+
         if(castingAction.WasPressedThisFrame())
         {
             chant = new();
@@ -74,10 +91,23 @@ public class playerController : MonoBehaviour
 
         if(castingAction.WasReleasedThisFrame())
         {
-            foreach (var word in chant)
+            bool cast = chant.Count == blastChant.Count;
+            if(cast)
             {
-                Debug.Log(word);
+                for (int i = 0; i < chant.Count; i++)
+                {
+                    if (chant[i] != blastChant[i])
+                    {
+                        cast = false; break;
+                    }
+                }
+                if(cast && mana > blastMana)
+                {
+                    mana -= blastMana;
+                    rb.AddForce((aim.position - transform.position).normalized * -500);
+                }
             }
+           
             Time.timeScale = 1;
         }
 
