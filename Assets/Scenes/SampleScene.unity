@@ -288,8 +288,8 @@ Transform:
   m_GameObject: {fileID: 255659813}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.0105, y: -4.5, z: 0}
-  m_LocalScale: {x: 17.761032, y: 1, z: 1}
+  m_LocalPosition: {x: -13.1264, y: -4.5, z: 0}
+  m_LocalScale: {x: 43.992302, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -401,7 +401,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 20
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -898,6 +898,8 @@ MonoBehaviour:
   spawnPoint: {fileID: 1017496776}
   camera: {fileID: 519420031}
   blastMana: 40
+  gravityMana: 100
+  gravityTime: 5
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

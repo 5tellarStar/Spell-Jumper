@@ -44,6 +44,12 @@ public class playerController : MonoBehaviour
 
     List<dir> blastChant = new List<dir>{dir.Right,dir.Up};
     public float blastMana = 40;
+
+    List<dir> gravityChant = new List<dir> {dir.Down,dir.Down,dir.Up};
+    public float gravityMana = 100;
+    public float gravityTime = 5;
+    private float gravityTimer = 5;
+    private float gravityMod = 1;
     // Start is called before the first frame update
     void Start()
     {
@@ -58,7 +64,17 @@ public class playerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.Log(mana);
+        gravityTimer += Time.deltaTime;
+        if(gravityTimer < gravityTime)
+        {
+            gravityMod = 0.5f;
+        }
+        else
+        {
+            gravityMod = 1;
+        }
+
+        Debug.Log(gravityTimer);
         aim.position = Input.mousePosition * ((camera.orthographicSize * 2)/Screen.height) - new Vector3(camera.orthographicSize * camera.aspect,camera.orthographicSize);
 
         bool grounded = Physics2D.BoxCast(transform.position,new Vector2(1,1),0,Vector2.down,0.4f, 64).collider != null;
@@ -101,10 +117,33 @@ public class playerController : MonoBehaviour
                         cast = false; break;
                     }
                 }
-                if(cast && mana > blastMana)
+                if(cast && mana >= blastMana)
                 {
                     mana -= blastMana;
                     rb.AddForce((aim.position - transform.position).normalized * -500);
+
+                    Collider2D hit = Physics2D.CircleCast(transform.position + (aim.position - transform.position).normalized, 1, Vector2.zero ,0, 64).collider;
+                    if(hit != null)
+                    {
+                        rb.AddForce((aim.position - transform.position).normalized * -500);
+                    }
+                }
+            }
+
+            cast = chant.Count == gravityChant.Count;
+            if(cast)
+            {
+                for (int i = 0; i < chant.Count; i++)
+                {
+                    if (chant[i] != gravityChant[i])
+                    {
+                        cast = false; break;
+                    }
+                }
+                if (cast && mana >= gravityMana)
+                {
+                    mana -= gravityMana;
+                    gravityTimer = 0;
                 }
             }
            
@@ -172,15 +211,15 @@ public class playerController : MonoBehaviour
 
         if (rb.linearVelocity.y < 0 || !jumping)
         {
-            rb.gravityScale = 2f;
+            rb.gravityScale = 2f * gravityMod;
         }
         else if(jumping && rb.linearVelocity.y > 0 && jumpTime < 0.78f) 
         {
-            rb.gravityScale = 0.5f;
+            rb.gravityScale = 0.5f * gravityMod;
         }
         else
         {
-            rb.gravityScale = 1;
+            rb.gravityScale = 1 * gravityMod;
         }
 
 
