@@ -6,6 +6,7 @@ using Unity.Mathematics;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 
 public class playerController : MonoBehaviour
 {
@@ -33,12 +34,14 @@ public class playerController : MonoBehaviour
 
     [SerializeField] private GameObject projectile;
 
-    [SerializeField] private Transform aim; 
+    [SerializeField] private Transform aim;
+    [SerializeField] private Transform spellWheel;
     [SerializeField] private Transform BookSprite;
     [SerializeField] private Transform spawnPoint;
 
     [SerializeField] private Camera camera;
 
+    private Vector3 castingPoint;
 
     List<dir> chant = new List<dir>();
 
@@ -74,7 +77,6 @@ public class playerController : MonoBehaviour
             gravityMod = 1;
         }
 
-        Debug.Log(gravityTimer);
         aim.position = Input.mousePosition * ((camera.orthographicSize * 2)/Screen.height) - new Vector3(camera.orthographicSize * camera.aspect,camera.orthographicSize);
 
         bool grounded = Physics2D.BoxCast(transform.position,new Vector2(1,1),0,Vector2.down,0.4f, 64).collider != null;
@@ -101,12 +103,17 @@ public class playerController : MonoBehaviour
 
         if(castingAction.WasPressedThisFrame())
         {
+            castingPoint = aim.position;
+            spellWheel.gameObject.SetActive(true);
+            spellWheel.position = castingPoint;
+            
             chant = new();
             Time.timeScale = 0.25f;
         }
 
         if(castingAction.WasReleasedThisFrame())
         {
+            spellWheel.gameObject.SetActive(false);
             bool cast = chant.Count == blastChant.Count;
             if(cast)
             {
@@ -152,6 +159,50 @@ public class playerController : MonoBehaviour
 
         if (casting)
         {
+            
+            if((aim.position - castingPoint).magnitude > 0.5f)
+            {
+                spellWheel.gameObject.SetActive(false);
+                if ((aim.position - castingPoint).x > 0)
+                {
+                    if((aim.position - castingPoint).y/(aim.position - castingPoint).x < -1)
+                    {
+                        Debug.Log("4");
+                    }
+                    else if((aim.position - castingPoint).y / (aim.position - castingPoint).x < 0)
+                    {
+                        Debug.Log("3");
+                    }
+                    else if((aim.position - castingPoint).y / (aim.position - castingPoint).x < 1)
+                    {
+                        Debug.Log("2");
+                    }
+                    else
+                    {
+                        Debug.Log("1");
+                    }
+                }
+                else
+                {
+                    if ((aim.position - castingPoint).y / (aim.position - castingPoint).x < -1)
+                    {
+                        Debug.Log("8");
+                    }
+                    else if ((aim.position - castingPoint).y / (aim.position - castingPoint).x < 0)
+                    {
+                        Debug.Log("7");
+                    }
+                    else if ((aim.position - castingPoint).y / (aim.position - castingPoint).x < 1)
+                    {
+                        Debug.Log("6");
+                    }
+                    else
+                    {
+                        Debug.Log("5");
+                    }
+                }
+            }
+
             if (up)
             {
                 chant.Add(dir.Up);
@@ -262,4 +313,16 @@ public enum dir
     Down,
     Left,
     Right
+}
+public enum spells
+{
+    None,
+    Blast,
+    Gravity,
+    Shield,
+    Temp1,
+    Temp2,
+    Temp3,
+    Temp4,
+    Temp5
 }
