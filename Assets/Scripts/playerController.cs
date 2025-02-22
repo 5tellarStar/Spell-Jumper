@@ -41,14 +41,11 @@ public class playerController : MonoBehaviour
 
     [SerializeField] private Camera camera;
 
+    private Spell currentSpell;
     private Vector3 castingPoint;
 
-    List<dir> chant = new List<dir>();
-
-    List<dir> blastChant = new List<dir>{dir.Right,dir.Up};
     public float blastMana = 40;
 
-    List<dir> gravityChant = new List<dir> {dir.Down,dir.Down,dir.Up};
     public float gravityMana = 100;
     public float gravityTime = 5;
     private float gravityTimer = 5;
@@ -107,24 +104,19 @@ public class playerController : MonoBehaviour
             spellWheel.gameObject.SetActive(true);
             spellWheel.position = castingPoint;
             
-            chant = new();
             Time.timeScale = 0.25f;
+
+            currentSpell = Spell.None;
         }
 
         if(castingAction.WasReleasedThisFrame())
         {
             spellWheel.gameObject.SetActive(false);
-            bool cast = chant.Count == blastChant.Count;
-            if(cast)
+
+            switch (currentSpell)
             {
-                for (int i = 0; i < chant.Count; i++)
-                {
-                    if (chant[i] != blastChant[i])
-                    {
-                        cast = false; break;
-                    }
-                }
-                if(cast && mana >= blastMana)
+            case Spell.Blast:
+                if(mana >= blastMana)
                 {
                     mana -= blastMana;
                     rb.AddForce((aim.position - transform.position).normalized * -500);
@@ -135,23 +127,16 @@ public class playerController : MonoBehaviour
                         rb.AddForce((aim.position - transform.position).normalized * -500);
                     }
                 }
-            }
-
-            cast = chant.Count == gravityChant.Count;
-            if(cast)
-            {
-                for (int i = 0; i < chant.Count; i++)
-                {
-                    if (chant[i] != gravityChant[i])
-                    {
-                        cast = false; break;
-                    }
-                }
-                if (cast && mana >= gravityMana)
+                break;
+                case Spell.Gravity:
+                if (mana >= gravityMana)
                 {
                     mana -= gravityMana;
                     gravityTimer = 0;
                 }
+                break;
+                default:
+                break;
             }
            
             Time.timeScale = 1;
@@ -160,7 +145,7 @@ public class playerController : MonoBehaviour
         if (casting)
         {
             
-            if((aim.position - castingPoint).magnitude > 0.5f)
+            if((aim.position - castingPoint).magnitude > 0.5f && currentSpell == Spell.None)
             {
                 spellWheel.gameObject.SetActive(false);
                 if ((aim.position - castingPoint).x > 0)
@@ -168,18 +153,22 @@ public class playerController : MonoBehaviour
                     if((aim.position - castingPoint).y/(aim.position - castingPoint).x < -1)
                     {
                         Debug.Log("4");
+                        currentSpell = Spell.Temp1;
                     }
                     else if((aim.position - castingPoint).y / (aim.position - castingPoint).x < 0)
                     {
                         Debug.Log("3");
+                        currentSpell = Spell.Temp1;
                     }
                     else if((aim.position - castingPoint).y / (aim.position - castingPoint).x < 1)
                     {
                         Debug.Log("2");
+                        currentSpell = Spell.Gravity;
                     }
                     else
                     {
                         Debug.Log("1");
+                        currentSpell = Spell.Blast;
                     }
                 }
                 else
@@ -187,42 +176,25 @@ public class playerController : MonoBehaviour
                     if ((aim.position - castingPoint).y / (aim.position - castingPoint).x < -1)
                     {
                         Debug.Log("8");
+                        currentSpell = Spell.Temp1;
                     }
                     else if ((aim.position - castingPoint).y / (aim.position - castingPoint).x < 0)
                     {
                         Debug.Log("7");
+                        currentSpell = Spell.Temp1;
                     }
                     else if ((aim.position - castingPoint).y / (aim.position - castingPoint).x < 1)
                     {
                         Debug.Log("6");
+                        currentSpell = Spell.Temp1;
                     }
                     else
                     {
                         Debug.Log("5");
+                        currentSpell = Spell.Temp1;
                     }
                 }
             }
-
-            if (up)
-            {
-                chant.Add(dir.Up);
-            }
-            else if(down)
-            {
-                chant.Add(dir.Down);
-            }
-            else if(left)
-            {
-                chant.Add(dir.Left);
-            }
-            else if(right)
-            {
-                chant.Add(dir.Right);
-            }
-            horizontalMoveValue = 0;
-            firing = false;
-            jumped = false;
-            jumping = false;
         }
 
 
@@ -307,14 +279,8 @@ public class playerController : MonoBehaviour
         
     }
 }
-public enum dir
-{
-    Up,
-    Down,
-    Left,
-    Right
-}
-public enum spells
+
+public enum Spell
 {
     None,
     Blast,
