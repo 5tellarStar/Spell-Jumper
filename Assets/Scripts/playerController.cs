@@ -42,6 +42,7 @@ public class playerController : MonoBehaviour
     [SerializeField] private Camera camera;
 
     private Spell currentSpell;
+    private Spell prevSpell;
     private Vector3 castingPoint;
 
     public float blastMana = 40;
@@ -76,7 +77,8 @@ public class playerController : MonoBehaviour
 
         aim.position = Input.mousePosition * ((camera.orthographicSize * 2)/Screen.height) - new Vector3(camera.orthographicSize * camera.aspect,camera.orthographicSize);
 
-        bool grounded = Physics2D.BoxCast(transform.position,new Vector2(1,1),0,Vector2.down,0.4f, 64).collider != null;
+        bool grounded = Physics2D.BoxCast(transform.position - new Vector3(0,-0.9f,0),new Vector2(0.7f,0.3f * 0.75f),0,Vector2.down,1.6f,64).collider != null;
+
 
         float horizontalMoveValue = horizontalMoveAction.ReadValue<float>();
 
@@ -112,6 +114,12 @@ public class playerController : MonoBehaviour
         if(castingAction.WasReleasedThisFrame())
         {
             spellWheel.gameObject.SetActive(false);
+            if(currentSpell == Spell.None)
+            {
+                currentSpell = prevSpell;
+            }
+
+            prevSpell = currentSpell;
 
             switch (currentSpell)
             {
@@ -253,15 +261,6 @@ public class playerController : MonoBehaviour
         else
         {
             BookSprite.rotation = Quaternion.Euler(0, 0, MathF.Atan((aim.position.y - transform.position.y)/ (aim.position.x - transform.position.x)) * Mathf.Rad2Deg);
-        }
-
-        if(grounded)
-        {
-            rb.linearDamping = 1;
-        }
-        else
-        {
-            rb.linearDamping = 0;
         }
 
 
