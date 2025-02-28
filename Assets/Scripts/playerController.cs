@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -77,7 +78,7 @@ public class playerController : MonoBehaviour
 
         aim.position = Input.mousePosition * ((camera.orthographicSize * 2)/Screen.height) - new Vector3(camera.orthographicSize * camera.aspect,camera.orthographicSize);
 
-        bool grounded = Physics2D.BoxCast(transform.position - new Vector3(0,-0.9f,0),new Vector2(0.7f,0.3f * 0.75f),0,Vector2.down,1.6f,64).collider != null;
+        bool grounded = Physics2D.BoxCast(transform.position - new Vector3(0,-0.9f,0),new Vector2(0.7f,0.3f * 0.75f),0,Vector2.down,1.6f,64).collider != null && Physics2D.BoxCast(transform.position - new Vector3(0, -0.9f, 0), new Vector2(0.7f, 0.3f * 0.75f), 0, Vector2.down, 1.6f, 64).collider.transform.position.y < transform.position.y - 1;
 
 
         float horizontalMoveValue = horizontalMoveAction.ReadValue<float>();
@@ -206,27 +207,54 @@ public class playerController : MonoBehaviour
         }
 
 
-
-        if (horizontalMoveValue < 0 && grounded)
+        if(grounded)
         {
-            if(rb.linearVelocity.x <= -maxSpeed)
+            if (horizontalMoveValue < 0)
             {
-                rb.linearVelocity = new Vector2(Mathf.Clamp(rb.linearVelocity.x, -1000, -maxSpeed), rb.linearVelocity.y);
+                if(rb.linearVelocity.x <= -maxSpeed)
+                {
+                    rb.linearVelocity = new Vector2(Mathf.Clamp(rb.linearVelocity.x, -1000, -maxSpeed), rb.linearVelocity.y);
+                }
+                else
+                {
+                    rb.linearVelocity += new Vector2(-accelSpeed * Time.deltaTime, 0);
+                }
             }
-            else
+            if (horizontalMoveValue > 0)
             {
-                rb.linearVelocity += new Vector2(-accelSpeed * Time.deltaTime, 0);
+                if (rb.linearVelocity.x >= maxSpeed)
+                {
+                    rb.linearVelocity = new Vector2(Mathf.Clamp(rb.linearVelocity.x, maxSpeed, 1000), rb.linearVelocity.y);
+                }
+                else
+                {
+                    rb.linearVelocity += new Vector2(accelSpeed * Time.deltaTime, 0);
+                }
             }
         }
-        if (horizontalMoveValue > 0 && grounded)
+        else
         {
-            if (rb.linearVelocity.x >= maxSpeed)
+            if (horizontalMoveValue < 0)
             {
-                rb.linearVelocity = new Vector2(Mathf.Clamp(rb.linearVelocity.x, maxSpeed, 1000), rb.linearVelocity.y);
+                if (rb.linearVelocity.x <= -maxSpeed/2)
+                {
+                    rb.linearVelocity = new Vector2(Mathf.Clamp(rb.linearVelocity.x, -1000, -maxSpeed /2), rb.linearVelocity.y);
+                }
+                else
+                {
+                    rb.linearVelocity += new Vector2(-accelSpeed/2 * Time.deltaTime, 0);
+                }
             }
-            else
+            if (horizontalMoveValue > 0)
             {
-                rb.linearVelocity += new Vector2(accelSpeed * Time.deltaTime, 0);
+                if (rb.linearVelocity.x >= maxSpeed/2)
+                {
+                    rb.linearVelocity = new Vector2(Mathf.Clamp(rb.linearVelocity.x, maxSpeed/2, 1000), rb.linearVelocity.y);
+                }
+                else
+                {
+                    rb.linearVelocity += new Vector2(accelSpeed/2 * Time.deltaTime, 0);
+                }
             }
         }
 
@@ -242,15 +270,15 @@ public class playerController : MonoBehaviour
 
         if (rb.linearVelocity.y < 0 || !jumping)
         {
-            rb.gravityScale = 2f * gravityMod;
+            rb.gravityScale = 3 * gravityMod;
         }
         else if(jumping && rb.linearVelocity.y > 0 && jumpTime < 0.78f) 
         {
-            rb.gravityScale = 0.5f * gravityMod;
+            rb.gravityScale = 1 * gravityMod;
         }
         else
         {
-            rb.gravityScale = 1 * gravityMod;
+            rb.gravityScale = 2 * gravityMod;
         }
 
 
